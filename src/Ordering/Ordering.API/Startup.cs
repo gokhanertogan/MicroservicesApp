@@ -36,13 +36,13 @@ namespace Ordering.API
             services.AddControllers();
             services.AddDbContext<OrderContext>(c => c.UseSqlServer(Configuration.GetConnectionString("OrderConnection")), ServiceLifetime.Singleton);
 
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped(typeof(IOrderRepository), typeof(OrderRepository));
+            services.AddTransient<IOrderRepository, OrderRepository>();
+
             services.AddAutoMapper(typeof(Startup));
 
             services.AddMediatR(typeof(CheckoutOrderHandler).GetTypeInfo().Assembly);
-
-            services.AddTransient<IOrderRepository, OrderRepository>();
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped(typeof(IOrderRepository), typeof(OrderRepository));
 
             services.AddSwaggerGen(c =>
             {
