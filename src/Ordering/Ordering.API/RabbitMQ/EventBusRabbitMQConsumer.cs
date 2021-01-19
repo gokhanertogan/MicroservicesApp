@@ -34,6 +34,7 @@ namespace Ordering.API.RabbitMQ
             channel.QueueDeclare(queue:EventBusConstants.BasketCheckoutQueue, durable:false, exclusive:false, autoDelete:false,arguments:null);
 
             var consumer = new EventingBasicConsumer(channel);
+            
 
             consumer.Received += ReceivedEvent;
 
@@ -42,6 +43,7 @@ namespace Ordering.API.RabbitMQ
 
         private async void ReceivedEvent(object sender, BasicDeliverEventArgs e)
         {
+
             if (e.RoutingKey==EventBusConstants.BasketCheckoutQueue)
             {
                 var message = Encoding.UTF8.GetString(e.Body.Span);
