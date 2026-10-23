@@ -5,7 +5,7 @@ using EventBusRabbitMQ.Events;
 using MediatR;
 using Newtonsoft.Json;
 using Ordering.Application.Commands;
-using Ordering.Core.Repositories;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -16,16 +16,14 @@ namespace Ordering.API.RabbitMQ
     public class EventBusRabbitMQConsumer
     {
         private readonly IRabbitMQConnnection _connection;
-        private readonly IMediator _mediator;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMapper _mapper;
-        private readonly IOrderRepository _repository;
 
-        public EventBusRabbitMQConsumer(IRabbitMQConnnection connection, IMediator mediator, IMapper mapper, IOrderRepository repository)
+        public EventBusRabbitMQConsumer(IRabbitMQConnnection connection, IServiceScopeFactory scopeFactory, IMapper mapper)
         {
             _connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         public void Consume()
@@ -48,7 +46,13 @@ namespace Ordering.API.RabbitMQ
                 var basketCheckoutEvent = JsonConvert.DeserializeObject<BasketCheckoutEvent>(message);
 
                 var command = _mapper.Map<CheckoutOrderCommand>(basketCheckoutEvent);
-                var result= await _mediator.Send(command);
+
+                // The consumer is a singleton; resolve scoped services (DbContext, repositories) per message.
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                    var result = await mediator.Send(command);
+                }
             }
         }
 

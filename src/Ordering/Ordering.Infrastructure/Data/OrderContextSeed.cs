@@ -34,7 +34,10 @@ namespace Ordering.Infrastructure.Data
                     log.LogError(exception.Message);
                     await SeedAsync(orderContext,loggerFactory,retryForAvailability);
                 }
-                throw;
+                else
+                {
+                    throw;
+                }
             }
         }
 

@@ -65,7 +65,7 @@ namespace Basket.API
 
                 if (!string.IsNullOrEmpty(Configuration["EventBus:Password"]))
                 {
-                    factory.UserName = Configuration["EventBus:Password"];
+                    factory.Password = Configuration["EventBus:Password"];
                 }
 
                 return new RabbitMQConnection(factory);
